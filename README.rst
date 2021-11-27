@@ -4,7 +4,7 @@ AusweisApp2
 Onkobus Fork
 ------------
 
-Mit einer Mail an Governikus wurde mir am 19.11.2021 zurückgemeldet:
+Mit einer Mail an Governikus wurde mir am 19.11.2021 zurückgemeldet::
 
 > Der Bund stellt aktuell leider keine offiziell unterstützte Version der AusweisApp2 für Linux bereit.
 > Diese Entscheidung wurde auf Grundlage der geringen Marktverbreitung von Linux und der zusätzlich starken Fragmentierung der Linux-Distributionen getroffen.
