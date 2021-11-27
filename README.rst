@@ -1,6 +1,22 @@
 AusweisApp2
 ===========
 
+Onkobus Fork
+------------
+
+Mit einer Mail an Governikus wurde mir am 19.11.2021 zurückgemeldet:
+
+> Der Bund stellt aktuell leider keine offiziell unterstützte Version der AusweisApp2 für Linux bereit.
+> Diese Entscheidung wurde auf Grundlage der geringen Marktverbreitung von Linux und der zusätzlich starken Fragmentierung der Linux-Distributionen getroffen.
+
+Es kommt aber im Zuge von Qt-Änderungen zum private constructor von QString, um Encoding-Probleme zu vermeiden. Damit zwingt man den Entwickler, eine Entscheidung zu treffen, wie String-Literale abgebildet werden. Es gäbe mehrere Möglichkeiten, dem zu begegnen (vgl. https://wiki.qt.io/Strings_and_encodings_in_Qt):
+
+* ``QStringLiteral``
+* einwickeln in ``tr()``
+* Compiler-Schalter ``QT_NO_CAST_FROM_ASCII`` und ``QT_NO_CAST_TO_ASCII``
+
+Weil ``...TO_ASCII`` schon drin war, habe ich mir für Ergänzung von ``...FROM_ASCII`` entschlossen. Ich habe keinen Schimmer von besseren Qt-Tricks. Für Verbesserungen bin ich zu haben. Aus diesem Repository heraus kann mit Tests gebaut werden.
+
 Kontakt
 -------
 | Governikus GmbH & Co. KG
