@@ -1,12 +1,13 @@
 /*!
  * \brief Context of JSON API.
  *
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
 
 #include "context/WorkflowContext.h"
+#include "Msg.h"
 #include "MsgTypes.h"
 
 namespace governikus
@@ -18,7 +19,7 @@ class MsgContext
 
 	protected:
 		MsgLevel mApiLevel;
-		QList<MsgType> mStateMessages;
+		QVector<Msg> mStateMessages;
 		QSharedPointer<WorkflowContext> mContext;
 
 	public:
@@ -27,7 +28,7 @@ class MsgContext
 		void setApiLevel(MsgLevel pApiLevel);
 		[[nodiscard]] MsgLevel getApiLevel() const;
 
-		[[nodiscard]] MsgType getLastStateMsg() const;
+		[[nodiscard]] Msg getLastStateMsg() const;
 
 		[[nodiscard]] bool isActiveWorkflow() const;
 
@@ -66,7 +67,7 @@ class MsgDispatcherContext
 {
 	public:
 		void clear();
-		void addStateMsg(MsgType pMsgType);
+		void addStateMsg(const Msg& pMsg);
 		void setWorkflowContext(const QSharedPointer<WorkflowContext>& pContext);
 };
 

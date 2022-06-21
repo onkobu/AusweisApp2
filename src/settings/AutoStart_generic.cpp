@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2014-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2014-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "AutoStart.h"
@@ -23,10 +23,12 @@ bool AutoStart::isSetByAdmin()
 }
 
 
-void AutoStart::set(bool pEnabled)
+bool AutoStart::setInternal(bool pEnabled)
 {
 	if (pEnabled)
 	{
 		qCDebug(settings) << "Autostart not supported on this system";
 	}
+
+	return false;
 }

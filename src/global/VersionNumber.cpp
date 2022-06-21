@@ -1,5 +1,5 @@
 /*
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "VersionNumber.h"
@@ -20,7 +20,7 @@ VersionNumber::VersionNumber(const QString& pVersion)
 	int idx = 0;
 	mVersionNumber = QVersionNumber::fromString(pVersion, &idx);
 #ifdef Q_CC_GNU
-	__sync_synchronize(); // a gcc bug: https://bugs.alpinelinux.org/issues/7584
+	__sync_synchronize(); // QTBUG-62185
 #endif
 	mSuffix = pVersion.mid(idx).trimmed();
 }

@@ -37,6 +37,8 @@ function(ADD_FLAG)
 		endif()
 		string(REPLACE "-" "_" flagname ${flagname})
 		string(REPLACE " " "_" flagname ${flagname})
+		string(REPLACE "," "_" flagname ${flagname})
+		string(REPLACE ":" "_" flagname ${flagname})
 
 		# GCC will ignore unknown warning options when used in the -Wno- form. It will complain
 		# about it though, if something else goes wrong. To check if this is a warning which can be
@@ -69,7 +71,11 @@ function(ADD_FLAG)
 				elseif(_PARAM_NOQUOTES)
 					set(${var} ${${var}} ${flag} PARENT_SCOPE)
 				else()
-					set(${var} "${${var}} ${flag}" PARENT_SCOPE)
+					if (${var})
+						set(${var} "${${var}} ${flag}" PARENT_SCOPE)
+					else()
+						set(${var} "${flag}" PARENT_SCOPE)
+					endif()
 				endif()
 			endforeach()
 

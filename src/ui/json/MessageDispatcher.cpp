@@ -1,5 +1,5 @@
 /*
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "MessageDispatcher.h"
@@ -39,18 +39,6 @@ Q_DECLARE_LOGGING_CATEGORY(json)
 
 using namespace governikus;
 
-
-#if !defined(QT_NO_DEBUG) && __has_include(<QTest>)
-#include <QTest>
-char* governikus::toString(const MessageDispatcher::Msg& pMsg)
-{
-	return QTest::toString(QByteArray(pMsg));
-}
-
-
-#endif
-
-
 MessageDispatcher::MessageDispatcher()
 	: mContext()
 {
@@ -82,12 +70,24 @@ void MessageDispatcher::reset()
 	mContext.clear();
 	Env::getSingleton<VolatileSettings>()->setMessages();
 	Env::getSingleton<VolatileSettings>()->setHandleInterrupt();
+	Env::getSingleton<VolatileSettings>()->setDeveloperMode();
 }
 
 
-QByteArray MessageDispatcher::createMsgReader(const ReaderInfo& pInfo) const
+QByteArrayList MessageDispatcher::processReaderChange(const ReaderInfo& pInfo)
 {
-	return MsgHandlerReader(pInfo).getOutput();
+	QByteArrayList messages;
+	messages << MsgHandlerReader(pInfo).getOutput();
+
+	const auto& lastStateMsg = mContext.getLastStateMsg();
+	if (lastStateMsg == MsgType::INSERT_CARD && !lastStateMsg)
+	{
+		const MsgHandlerInsertCard msg;
+		mContext.addStateMsg(msg);
+		messages << msg.getOutput();
+	}
+
+	return messages;
 }
 
 
@@ -118,13 +118,13 @@ QByteArray MessageDispatcher::processStateChange(const QString& pState)
 		return MsgHandlerInternalError(QLatin1String("Unexpected condition")).getOutput();
 	}
 
-	const auto& msg = createForStateChange(MsgHandler::getStateMsgType(pState, mContext.getContext()->getEstablishPaceChannelType()));
-	mContext.addStateMsg(msg.getType());
-	return msg.getOutput();
+	const Msg& msg = createForStateChange(MsgHandler::getStateMsgType(pState, mContext.getContext()->getEstablishPaceChannelType()));
+	mContext.addStateMsg(msg);
+	return msg;
 }
 
 
-MsgHandler MessageDispatcher::createForStateChange(MsgType pStateType)
+Msg MessageDispatcher::createForStateChange(MsgType pStateType)
 {
 	if (mContext.getContext()->isWorkflowCancelled())
 	{
@@ -159,9 +159,9 @@ MsgHandler MessageDispatcher::createForStateChange(MsgType pStateType)
 }
 
 
-MessageDispatcher::Msg MessageDispatcher::processCommand(const QByteArray& pMsg)
+Msg MessageDispatcher::processCommand(const QByteArray& pMsg)
 {
-	QJsonParseError jsonError;
+	QJsonParseError jsonError {};
 	const auto& json = QJsonDocument::fromJson(pMsg, &jsonError);
 	if (jsonError.error != QJsonParseError::NoError)
 	{
@@ -308,31 +308,12 @@ MsgHandler MessageDispatcher::interrupt()
 	{
 		const auto allowedStates = {MsgType::ENTER_PIN, MsgType::ENTER_CAN, MsgType::ENTER_PUK, MsgType::ENTER_NEW_PIN};
 		return handleCurrentState(cmdType, allowedStates, [] {
-					Env::getSingleton<ReaderManager>()->stopScanAll();
-					return MsgHandler::Void;
-				});
+				Env::getSingleton<ReaderManager>()->stopScanAll();
+				return MsgHandler::Void;
+			});
 	}
 #else
 	return MsgHandlerUnknownCommand(cmdType);
 
 #endif
-}
-
-
-MessageDispatcher::Msg::Msg(const MsgHandler& pHandler)
-	: mType(pHandler.getType())
-	, mData(pHandler.getOutput())
-{
-}
-
-
-MessageDispatcher::Msg::operator QByteArray() const
-{
-	return mData;
-}
-
-
-MessageDispatcher::Msg::operator MsgType() const
-{
-	return mType;
 }

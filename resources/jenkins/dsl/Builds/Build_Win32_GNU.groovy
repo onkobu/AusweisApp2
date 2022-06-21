@@ -6,12 +6,21 @@ def j = new Build
 		name: 'Win32_GNU',
 		libraries: ['Win32_GNU'],
 		label: 'Windows',
-		xunit: true
+		xunit: true,
+		weight: 2
 	).generate(this)
 
 
 j.with
 {
+	wrappers
+	{
+		environmentVariables
+		{
+			env('PATH', '${COMPILER_${MERCURIAL_REVISION_BRANCH}};$PATH')
+		}
+	}
+
 	steps
 	{
 		batchFile(strip("""\

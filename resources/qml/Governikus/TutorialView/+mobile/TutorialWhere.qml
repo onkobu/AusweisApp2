@@ -1,5 +1,5 @@
 /*
- * \copyright Copyright (c) 2018-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2018-2022 Governikus GmbH & Co. KG, Germany
  */
 
 import QtQuick 2.12
@@ -101,7 +101,7 @@ TutorialContent {
 		Accessible.onScrollUpAction: baseItem.Accessible.scrollUpAction()
 
 		//: LABEL ANDROID IOS
-		text: qsTr("The <b>integrated self-disclosure</b> is a special service to view the data saved on your ID card.")
+		text: qsTr("The <b>integrated self-authentication</b> is a special service to view the data saved on your ID card.")
 		textStyle: Style.text.tutorial_header
 		horizontalAlignment: Text.AlignHCenter
 	}

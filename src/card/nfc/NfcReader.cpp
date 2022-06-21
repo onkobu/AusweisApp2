@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2015-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2015-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "NfcReader.h"
@@ -65,7 +65,14 @@ void NfcReader::targetDetected(QNearFieldTarget* pTarget)
 
 	mNfManager.setUserInformation(info);
 #endif
-	Q_EMIT fireCardInserted(mReaderInfo);
+	if (getCard())
+	{
+		Q_EMIT fireCardInserted(mReaderInfo);
+	}
+	else
+	{
+		mReaderInfo.setCardInfo(CardInfo(CardType::NONE));
+	}
 }
 
 

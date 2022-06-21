@@ -78,13 +78,15 @@ if(CLOC_BIN)
 	add_custom_target(cloc.report DEPENDS ${CLOC_FILE})
 endif()
 
+add_custom_target(format)
+
 find_program(UNCRUSTIFY uncrustify CMAKE_FIND_ROOT_PATH_BOTH)
 if(UNCRUSTIFY)
 	execute_process(COMMAND ${UNCRUSTIFY} --version OUTPUT_VARIABLE UNCRUSTIFY_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 	string(REPLACE "uncrustify " "" UNCRUSTIFY_VERSION ${UNCRUSTIFY_VERSION})
 	string(REPLACE "Uncrustify-" "" UNCRUSTIFY_VERSION ${UNCRUSTIFY_VERSION})
 
-	set(UNCRUSTIFY_NEEDED_VERSION "0.71.0")
+	set(UNCRUSTIFY_NEEDED_VERSION "0.74.0")
 	if("${UNCRUSTIFY_VERSION}" STRLESS "${UNCRUSTIFY_NEEDED_VERSION}")
 		message(WARNING "Uncrustify seems to be too old. Use at least ${UNCRUSTIFY_NEEDED_VERSION}... you are using: ${UNCRUSTIFY_VERSION}")
 	else()
@@ -108,8 +110,24 @@ if(UNCRUSTIFY)
 
 		set(UNCRUSTIFY_CFG ${PROJECT_SOURCE_DIR}/uncrustify.cfg)
 		set(UNCRUSTIFY_CMD ${UNCRUSTIFY} -c ${UNCRUSTIFY_CFG} --replace --no-backup -q -F ${FORMATTING_FILE})
-		add_custom_target(format COMMAND ${UNCRUSTIFY_CMD} SOURCES ${UNCRUSTIFY_CFG} ${FILES})
+		add_custom_target(format.uncrustify COMMAND ${UNCRUSTIFY_CMD} SOURCES ${UNCRUSTIFY_CFG} ${FILES})
+		add_dependencies(format format.uncrustify)
 	endif()
+endif()
+
+find_program(PYTHON python CMAKE_FIND_ROOT_PATH_BOTH)
+if(PYTHON)
+	list(APPEND GLOB_JSON ${RESOURCES_DIR}/updatable-files/*.json)
+	list(APPEND GLOB_JSON ${RESOURCES_DIR}/json-schemas/*.json)
+	file(GLOB_RECURSE JSON_FILES ${GLOB_JSON})
+
+	foreach(JSON_FILE ${JSON_FILES})
+		list(APPEND commands
+			COMMAND ${PYTHON} -m json.tool --no-ensure-ascii --tab ${JSON_FILE} ${JSON_FILE})
+	endforeach()
+
+	add_custom_target(format.json ${commands})
+	add_dependencies(format format.json)
 endif()
 
 find_program(QMLLINT_BIN qmllint CMAKE_FIND_ROOT_PATH_BOTH)
@@ -308,6 +326,8 @@ if(INKSCAPE)
 		COMMAND ${INKSCAPE} img_RemoteReader_mit_ausweis.svg -w 512 -h 512 -y 0 -o ${RESOURCES_DIR}/updatable-files/reader/img_RemoteReader_mit_ausweis.png
 		COMMAND ${INKSCAPE} img_PersoSim.svg -w 512 -h 512 -y 0 -o ${RESOURCES_DIR}/updatable-files/reader/img_PersoSim.png
 		COMMAND ${INKSCAPE} img_PersoSim_mit_ausweis.svg -w 512 -h 512 -y 0 -o ${RESOURCES_DIR}/updatable-files/reader/img_PersoSim_mit_ausweis.png
+		COMMAND ${INKSCAPE} img_Simulator.svg -w 512 -h 512 -y 0 -o ${RESOURCES_DIR}/updatable-files/reader/img_Simulator.png
+		COMMAND ${INKSCAPE} img_Simulator_mit_ausweis.svg -w 512 -h 512 -y 0 -o ${RESOURCES_DIR}/updatable-files/reader/img_Simulator_mit_ausweis.png
 		WORKING_DIRECTORY ${RESOURCES_DIR}/images/reader/src)
 endif()
 
@@ -479,6 +499,8 @@ if(PNGQUANT)
 		COMMAND ${PNGQUANT_CMD} img_RemoteReader_mit_ausweis.png -- img_RemoteReader_mit_ausweis.png
 		COMMAND ${PNGQUANT_CMD} img_PersoSim.png -- img_PersoSim.png
 		COMMAND ${PNGQUANT_CMD} img_PersoSim_mit_ausweis.png -- img_PersoSim_mit_ausweis.png
+		COMMAND ${PNGQUANT_CMD} img_Simulator.png -- img_Simulator.png
+		COMMAND ${PNGQUANT_CMD} img_Simulator_mit_ausweis.png -- img_Simulator_mit_ausweis.png
 		WORKING_DIRECTORY ${RESOURCES_DIR}/updatable-files/reader)
 endif()
 

@@ -1,7 +1,7 @@
 /*!
  * \brief Message InsertCard of JSON API.
  *
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
@@ -16,6 +16,7 @@ class MsgHandlerInsertCard
 	: public MsgHandler
 {
 	public:
+		MsgHandlerInsertCard();
 		explicit MsgHandlerInsertCard(MsgContext& pContext);
 };
 

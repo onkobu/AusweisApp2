@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2017-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2017-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "RemoteDeviceList.h"
@@ -202,7 +202,7 @@ void RemoteDeviceListImpl::onProcessUnresponsiveRemoteReaders()
 	QMutableVectorIterator<QSharedPointer<RemoteDeviceListEntry> > i(mResponsiveList);
 	while (i.hasNext())
 	{
-		const QSharedPointer<RemoteDeviceListEntry>& entry = i.next();
+		const QSharedPointer<RemoteDeviceListEntry> entry = i.next();
 		if (entry->getLastSeen() < threshold)
 		{
 			i.remove();

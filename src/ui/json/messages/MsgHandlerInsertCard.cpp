@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "MsgHandlerInsertCard.h"
@@ -8,12 +8,9 @@
 
 using namespace governikus;
 
-MsgHandlerInsertCard::MsgHandlerInsertCard(MsgContext& pContext)
+MsgHandlerInsertCard::MsgHandlerInsertCard()
 	: MsgHandler(MsgType::INSERT_CARD)
 {
-	Q_ASSERT(pContext.getContext());
-	pContext.getContext()->setStateApproved();
-
 	const auto& infos = Env::getSingleton<ReaderManager>()->getReaderInfos();
 	for (const auto& entry : infos)
 	{
@@ -23,4 +20,12 @@ MsgHandlerInsertCard::MsgHandlerInsertCard(MsgContext& pContext)
 			break;
 		}
 	}
+}
+
+
+MsgHandlerInsertCard::MsgHandlerInsertCard(MsgContext& pContext)
+	: MsgHandlerInsertCard()
+{
+	Q_ASSERT(pContext.getContext());
+	pContext.getContext()->setStateApproved();
 }

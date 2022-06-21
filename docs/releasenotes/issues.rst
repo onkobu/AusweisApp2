@@ -39,9 +39,6 @@ Windows / macOS
   oder eine PIN-Änderung mit Komfort-Kartenleser durchgeführt wird, kann es
   unter Windows und macOS zu einem Absturz kommen.
 
-- Unter macOS wird der Hinweis bei falscher PIN-Bestätigung während der
-  PIN-Änderung nur sehr kurz angezeigt.
-
 - Unter Windows wird der "Datei speichern unter"-Dialog nicht automatisch
   bei Beginn einer Authentisierung geschlossen.
 
@@ -59,6 +56,13 @@ Windows / macOS
 - Unter Windows wird ein benutzerdefinierter Installationspfad bei einem Update
   einer Version der AusweisApp2 älter als Version 1.22.0 auf eine aktuelle
   Version nicht automatisch übernommen.
+
+- Vereinzelt kann es bei Problemen mit dem Grafikkartentreiber, insbesondere
+  bei der Verwendung einer virtuellen Maschine, zu Darstellungsfehlern in
+  der Anwendung kommen. Unter Umständen wird kein Fensterinhalt dargestellt.
+  Dies kann durch das Setzen einer Umgebungsvariablen umgangen werden.
+  Hierfür muss QT_QUICK_BACKEND=software gesetzt und die AusweisApp2
+  neugestartet werden.
 
 Android / iOS
 """""""""""""

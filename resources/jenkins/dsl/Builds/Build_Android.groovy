@@ -12,7 +12,7 @@ def j = new Build
 		name: 'Android_APK_' + ARCH,
 		libraries: ['Android_' + ARCH],
 		label: 'Android',
-		artifacts: 'build/dist/**/AusweisApp2-*.apk,build/debug.symbols/*'
+		artifacts: 'build/dist/**/AusweisApp2-*.apk*,build/debug.symbols/*'
 	).generate(this)
 
 
@@ -28,14 +28,15 @@ j.with
 			-DCMAKE_TOOLCHAIN_FILE=../source/cmake/android.toolchain.cmake
 			-DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 			-DCMAKE_ANDROID_ARCH_ABI=${ARCH}
-			-DAPK_SIGN_KEYSTORE=\${APK_SIGN_KEYSTORE}
-			-DAPK_SIGN_KEYSTORE_ALIAS=\${APK_SIGN_KEYSTORE_ALIAS}
-			-DAPK_SIGN_KEYSTORE_PSW=\${APK_SIGN_KEYSTORE_PSW}
+			-DAPK_SIGN_KEYSTORE=\${APK_SIGN_KEYSTORE_DEV}
+			-DAPK_SIGN_KEYSTORE_ALIAS=\${APK_SIGN_KEYSTORE_ALIAS_DEV}
+			-DAPK_SIGN_KEYSTORE_PSW=\${APK_SIGN_KEYSTORE_PSW_DEV}
 			"""))
 
 		shell('cd build; make \${MAKE_FLAGS} install')
 		shell('cd build; make apk')
 		shell('cd build; make verify.signature')
+		shell('cd build; make dump.apk')
 	}
 
 	publishers {

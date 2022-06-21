@@ -1,5 +1,5 @@
 /*
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 import QtQuick 2.12
@@ -22,9 +22,7 @@ Rectangle {
 		if (d.activeModule !== pModule) {
 			d.activeModule = pModule
 
-			if (pModule !== UiModule.TUTORIAL) {
-				SettingsModel.startupModule = pModule === UiModule.REMOTE_SERVICE ? UiModule.REMOTE_SERVICE : UiModule.DEFAULT
-			}
+			SettingsModel.startupModule = pModule === UiModule.REMOTE_SERVICE ? UiModule.REMOTE_SERVICE : UiModule.DEFAULT
 		}
 	}
 
@@ -44,7 +42,7 @@ Rectangle {
 
 		property int activeModule
 		readonly property int startupModule: SettingsModel.startupModule
-		readonly property bool initialLockedAndHidden: startupModule === UiModule.TUTORIAL || startupModule === UiModule.IDENTIFY
+		readonly property bool initialLockedAndHidden: startupModule === UiModule.IDENTIFY
 
 		Component.onCompleted: show(startupModule, initialLockedAndHidden)
 	}

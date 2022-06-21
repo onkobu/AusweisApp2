@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2014-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2014-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "AuthContext.h"
@@ -21,6 +21,7 @@ AuthContext::AuthContext(const QSharedPointer<ActivationContext>& pActivationCon
 	, mTcTokenNotFound(true)
 	, mErrorReportedToServer(false)
 	, mSkipRedirect(false)
+	, mShowChangePinView(false)
 	, mActivationContext(pActivationContext)
 	, mTcTokenUrl()
 	, mTcToken()
@@ -70,6 +71,19 @@ void AuthContext::setProgress(int pValue, const QString& pMessage)
 
 		Q_EMIT fireProgressChanged();
 	}
+}
+
+
+void AuthContext::requestChangePinView()
+{
+	if (mShowChangePinView)
+	{
+		return;
+	}
+
+	mSkipRedirect = true;
+	mShowChangePinView = true;
+	Q_EMIT fireShowChangePinViewChanged();
 }
 
 

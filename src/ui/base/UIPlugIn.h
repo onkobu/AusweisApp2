@@ -1,7 +1,7 @@
 /*!
  * \brief Abstract layer to UI implementations.
  *
- * \copyright Copyright (c) 2015-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2015-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
@@ -25,13 +25,13 @@ defineEnumType(UiModule,
 		IDENTIFY,
 		SETTINGS,
 		PINMANAGEMENT,
-		TUTORIAL,
 		HISTORY,
 		HELP,
 		PROVIDER,
 		SELF_AUTHENTICATION,
 
 		// Desktop only
+		TUTORIAL,
 		UPDATEINFORMATION,
 
 		// Mobile only

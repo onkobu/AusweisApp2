@@ -1,5 +1,5 @@
 /*
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 import QtQuick 2.12
@@ -39,7 +39,6 @@ Item {
 		startupModule === UiModule.REMOTE_SERVICE ? remoteView :
 		startupModule === UiModule.SETTINGS ? settingsView :
 		startupModule === UiModule.HELP ? helpView :
-		startupModule === UiModule.TUTORIAL ? tutorialView :
 		mainView
 
 	ContentAreaLoader {
@@ -157,25 +156,6 @@ Item {
 		sourceComponent: Component {
 			TabBarView {
 				sourceComponent: MoreView {}
-			}
-		}
-	}
-
-	ContentAreaLoader {
-		id: tutorialView
-
-		contentArea: baseItem
-		module:  UiModule.TUTORIAL
-
-		active: contentArea.activeModule === module || startupModule === module
-		sourceComponent: Component {
-			TabBarView {
-				sourceComponent: TutorialView {
-					onLeave: {
-						navBar.show(UiModule.DEFAULT)
-						SettingsModel.startupModule = UiModule.DEFAULT
-					}
-				}
 			}
 		}
 	}

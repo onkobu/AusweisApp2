@@ -6,12 +6,21 @@ def j = new Build
 		name: 'Win32_GNU_MSI_dev',
 		libraries: ['Win32_GNU_dev'],
 		label: 'Windows',
-		artifacts: 'build/*.msi'
+		artifacts: 'build/*.msi',
+		weight: 2
 	).generate(this)
 
 
 j.with
 {
+	wrappers
+	{
+		environmentVariables
+		{
+			env('PATH', '${COMPILER_${MERCURIAL_REVISION_BRANCH}};$PATH')
+		}
+	}
+
 	steps
 	{
 		batchFile(strip("""\

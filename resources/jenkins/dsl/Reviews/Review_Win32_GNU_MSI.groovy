@@ -6,12 +6,21 @@ def j = new Review
 		name: 'Win32_GNU_MSI',
 		libraries: ['Win32_GNU'],
 		label: 'Windows',
-		artifacts: 'build/*.msi'
+		artifacts: 'build/*.msi',
+		weight: 2
 	).generate(this)
 
 
 j.with
 {
+	wrappers
+	{
+		environmentVariables
+		{
+			env('PATH', '${COMPILER_${MERCURIAL_REVISION_BRANCH}};$PATH')
+		}
+	}
+
 	steps
 	{
 		batchFile('cd source & cmake -DCMD=IMPORT_PATCH -P cmake/cmd.cmake')

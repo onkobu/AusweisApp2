@@ -1,11 +1,12 @@
 /*!
  * \brief Base of all messages of JSON API.
  *
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
 
+#include "Msg.h"
 #include "MsgTypes.h"
 #include "SmartCardDefinitions.h"
 
@@ -46,6 +47,8 @@ class MsgHandler
 		[[nodiscard]] MsgType getType() const;
 
 		void setRequest(const QJsonObject& pRequest);
+
+		operator Msg() const;
 };
 
 inline QDebug operator<<(QDebug pDbg, const MsgHandler& pMsg)

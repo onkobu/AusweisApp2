@@ -35,6 +35,8 @@ function(EXTRACT_MODULES _out_module _out_submodule filename)
 		GET_CAPITALIZED(SUBMODULE "${SUBMODULE}")
 	endif()
 
+	GET_SNAKE_TO_CAMEL_CASE(SUBMODULE "${SUBMODULE}")
+
 	# return values: module is required, submodule optional
 	set(${_out_module} ${MODULE} PARENT_SCOPE)
 	set(${_out_submodule} ${SUBMODULE} PARENT_SCOPE)
@@ -79,6 +81,7 @@ function(SHOULD_SKIP_TEST _out filename)
 
 	if(INTEGRATED_SDK AND (test MATCHES "ui/qml"
 		OR test MATCHES "ui/websocket"
+		OR test MATCHES "activation/custom_scheme"
 		OR test MATCHES "init/"
 		OR test MATCHES "remote_device"
 		OR test MATCHES "export"))
@@ -109,6 +112,7 @@ function(ADD_TEST_EXECUTABLE_SUBDIR)
 		ADD_TEST_EXECUTABLE(${TESTNAME} ${sourcefile})
 		GET_TEST_CMDLINE(TEST_CMDLINE ${TESTNAME})
 		add_test(${TESTNAME} ${TESTNAME} ${TEST_CMDLINE})
+		add_dependencies(${TESTNAME} AusweisAppRcc)
 		set_tests_properties(${TESTNAME} PROPERTIES FAIL_REGULAR_EXPRESSION "nullptr parameter")
 		set_tests_properties(${TESTNAME} PROPERTIES ENVIRONMENT "QT_ENABLE_REGEXP_JIT=0")
 
@@ -117,6 +121,15 @@ function(ADD_TEST_EXECUTABLE_SUBDIR)
 		else()
 			set_tests_properties(${TESTNAME} PROPERTIES LABELS "ausweisapp" TIMEOUT 120)
 		endif()
+
+		# Create a target for each folder and add each test as a dependency
+		get_filename_component(TEST_FOLDER_TARGET ${sourcefile} DIRECTORY)
+		EXTRACT_TESTNAME(TEST_FOLDER_TARGET ${TEST_FOLDER_TARGET})
+		set(TEST_FOLDER_TARGET "ALL_${TEST_FOLDER_TARGET}")
+		if(NOT TARGET ${TEST_FOLDER_TARGET})
+			add_custom_target(${TEST_FOLDER_TARGET})
+		endif()
+		add_dependencies(${TEST_FOLDER_TARGET} ${TESTNAME})
 	endforeach()
 endfunction()
 

@@ -3,7 +3,8 @@ import common.Library
 def j = new Library
 	(
 		name: 'Win32_GNU_dev',
-		label: 'Windows'
+		label: 'Windows',
+		weight: 3
 	).generate(this)
 
 
@@ -14,6 +15,7 @@ j.with
 		environmentVariables
 		{
 			env('MSYS2_PATH_TYPE', 'inherit')
+			env('PATH', '${COMPILER_${MERCURIAL_REVISION_BRANCH}};$PATH')
 		}
 	}
 

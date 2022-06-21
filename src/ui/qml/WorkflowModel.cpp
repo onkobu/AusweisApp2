@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2015-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2015-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "WorkflowModel.h"
@@ -7,8 +7,10 @@
 #include "AppSettings.h"
 #include "context/AuthContext.h"
 #include "Email.h"
+#include "Env.h"
 #include "FuncUtils.h"
 #include "GeneralSettings.h"
+#include "PinResetInformationModel.h"
 #include "ReaderConfiguration.h"
 #include "ReaderManager.h"
 
@@ -132,16 +134,6 @@ void WorkflowModel::startScanIfNecessary()
 }
 
 
-void WorkflowModel::cancelWorkflowToChangePin()
-{
-	if (mContext)
-	{
-		mContext->setStatus(GlobalStatus::Code::Workflow_Cancellation_By_User);
-		Q_EMIT mContext->fireCancelWorkflow();
-	}
-}
-
-
 bool WorkflowModel::isBasicReader() const
 {
 	if (mContext && mContext->getCardConnection())
@@ -159,9 +151,60 @@ bool WorkflowModel::getNextWorkflowPending() const
 }
 
 
+GlobalStatus::Code WorkflowModel::getStatusCode() const
+{
+	return mContext ? mContext->getStatus().getStatusCode() : GlobalStatus::Code::Unknown_Error;
+}
+
+
 QString WorkflowModel::getReaderImage() const
 {
 	return mReaderImage;
+}
+
+
+QString WorkflowModel::getStatusHintText() const
+{
+	switch (getStatusCode())
+	{
+		case GlobalStatus::Code::Card_Puk_Blocked:
+			return Env::getSingleton<PinResetInformationModel>()->getRequestNewPinHint();
+
+		case GlobalStatus::Code::Card_Pin_Deactivated:
+			return Env::getSingleton<PinResetInformationModel>()->getActivateOnlineFunctionHint();
+
+		default:
+			return QString();
+	}
+}
+
+
+QString WorkflowModel::getStatusHintActionText() const
+{
+	switch (getStatusCode())
+	{
+		case GlobalStatus::Code::Card_Puk_Blocked:
+		case GlobalStatus::Code::Card_Pin_Deactivated:
+			return Env::getSingleton<PinResetInformationModel>()->getPinResetActionText();
+
+		default:
+			return QString();
+	}
+}
+
+
+bool WorkflowModel::invokeStatusHintAction()
+{
+	switch (getStatusCode())
+	{
+		case GlobalStatus::Code::Card_Puk_Blocked:
+		case GlobalStatus::Code::Card_Pin_Deactivated:
+			QDesktopServices::openUrl(Env::getSingleton<PinResetInformationModel>()->getPinResetUrl());
+			return true;
+
+		default:
+			return false;
+	}
 }
 
 

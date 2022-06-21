@@ -1,7 +1,7 @@
 /*!
  * \brief Authentication context.
  *
- * \copyright Copyright (c) 2014-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2014-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
@@ -61,6 +61,7 @@ class AuthContext
 		bool mTcTokenNotFound;
 		bool mErrorReportedToServer;
 		bool mSkipRedirect;
+		bool mShowChangePinView;
 
 		QSharedPointer<ActivationContext> mActivationContext;
 		QUrl mTcTokenUrl;
@@ -91,6 +92,7 @@ class AuthContext
 
 	Q_SIGNALS:
 		void fireProgressChanged();
+		void fireShowChangePinViewChanged();
 		void fireDidAuthenticateEac1Changed();
 		void fireAccessRightManagerCreated(QSharedPointer<AccessRightManager> pAccessRightManager);
 
@@ -122,6 +124,15 @@ class AuthContext
 
 
 		void setProgress(int pValue, const QString& pMessage);
+
+
+		[[nodiscard]] bool showChangePinView() const
+		{
+			return mShowChangePinView;
+		}
+
+
+		void requestChangePinView();
 
 
 		[[nodiscard]] bool isTcTokenNotFound() const

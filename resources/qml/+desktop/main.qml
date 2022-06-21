@@ -1,5 +1,5 @@
 /*
- * \copyright Copyright (c) 2018-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2018-2022 Governikus GmbH & Co. KG, Germany
  */
 
 import Governikus.Global 1.0
@@ -45,8 +45,6 @@ ApplicationWindow {
 	}
 
 	visible: false
-	width: d.initialWidth
-	height: d.initialHeight
 
 	minimumWidth: 480
 	minimumHeight: 360
@@ -68,6 +66,11 @@ ApplicationWindow {
 		if (ApplicationModel.currentWorkflow !== "") {
 			abortWorkflowWarning.open()
 			close.accepted = false
+			return
+		}
+
+		if (Qt.platform.os === "osx" && !SettingsModel.autoStartApp) {
+			close.accepted = true
 			return
 		}
 
@@ -94,8 +97,6 @@ ApplicationWindow {
 
 		property int activeView: UiModule.DEFAULT
 		property int lastVisibility: ApplicationWindow.Windowed
-		readonly property int initialWidth: 960
-		readonly property int initialHeight: 720
 		property ApplicationWindow detachedLogView: null
 
 		function abortCurrentWorkflow() {
@@ -144,7 +145,8 @@ ApplicationWindow {
 		}
 
 		function setScaleFactor() {
-			ApplicationModel.scaleFactor = Math.min(width / initialWidth, height / initialHeight)
+			let initialSize = plugin.initialWindowSize
+			ApplicationModel.scaleFactor = Math.min(width / initialSize.width, height / initialSize.height)
 		}
 
 	}
@@ -167,7 +169,7 @@ ApplicationWindow {
 		visible: plugin.dominated
 
 		style: ConfirmationPopup.PopupStyle.NoButtons
-		//: INFO DESKTOP_QML The AA2 is currently remote controlled via the SDK interface, concurrent usage of the AA2 is not possible.
+		//: INFO DESKTOP The AA2 is currently remote controlled via the SDK interface, concurrent usage of the AA2 is not possible.
 		title: qsTr("Another application uses %1").arg(Qt.application.name)
 		text: plugin.dominator
 		closePolicy: Popup.NoAutoClose
@@ -178,14 +180,14 @@ ApplicationWindow {
 
 		closePolicy: Popup.NoAutoClose
 		style: ConfirmationPopup.PopupStyle.OkButton
-		//: INFO DESKTOP_QML Header of the popup that is shown when the AA2 is closed for the first time.
+		//: INFO DESKTOP Header of the popup that is shown when the AA2 is closed for the first time.
 		title: qsTr("The user interface of the %1 is closed.").arg(Qt.application.name)
-		//: INFO DESKTOP_QML Content of the popup that is shown when the AA2 is closed for the first time.
+		//: INFO DESKTOP Content of the popup that is shown when the AA2 is closed for the first time.
 		text: qsTr("The program remains available via the icon in the system tray. Click on the %1 icon to reopen the user interface.").arg(Qt.application.name)
 		onConfirmed: d.hideUiAndTaskbarEntry()
 
 		ToggleableOption {
-			//: LABEL DESKTOP_QML
+			//: LABEL DESKTOP
 			text: qsTr("Do not show this dialog again.")
 			textStyle: Style.text.normal_inverse
 
@@ -198,13 +200,13 @@ ApplicationWindow {
 	ConfirmationPopup {
 		id: abortWorkflowWarning
 
-		//: INFO DESKTOP_QML Content of the popup that is shown when the AA2 is closed and a workflow is still active.
+		//: INFO DESKTOP Content of the popup that is shown when the AA2 is closed and a workflow is still active.
 		readonly property string abortText: qsTr("This will cancel the current operation and hide the UI of %1. You can restart the operation at any time.").arg(Qt.application.name)
-		//: INFO DESKTOP_QML Content of the popup that is shown when the AA2 is closed and a workflow is still active and the close/minimize info was not disabled.
+		//: INFO DESKTOP Content of the popup that is shown when the AA2 is closed and a workflow is still active and the close/minimize info was not disabled.
 		readonly property string hideToTrayText: qsTr("The program remains available via the icon in the system tray. Click on the %1 icon to reopen the user interface.").arg(Qt.application.name)
 
 		closePolicy: Popup.NoAutoClose
-		//: INFO DESKTOP_QML Header of the popup that is shown when the AA2 is closed and a workflow is still active
+		//: INFO DESKTOP Header of the popup that is shown when the AA2 is closed and a workflow is still active
 		title: qsTr("Abort operation")
 		text: "%1%2".arg(abortText).arg(SettingsModel.remindUserToClose ? "<br/><br/>%1".arg(hideToTrayText) : "")
 
@@ -221,6 +223,8 @@ ApplicationWindow {
 			d.showMainWindow()
 			d.closeOpenDialogs()
 			switch (pModule) {
+				case UiModule.CURRENT:
+					break
 				case UiModule.IDENTIFY:
 					if (ApplicationModel.currentWorkflow === "") {
 						d.activeView = UiModule.SELF_AUTHENTICATION
@@ -232,11 +236,6 @@ ApplicationWindow {
 				case UiModule.PINMANAGEMENT:
 					if (ApplicationModel.currentWorkflow === "" || ApplicationModel.currentWorkflow === "changepin") {
 						d.activeView = UiModule.PINMANAGEMENT
-					}
-					break
-				case UiModule.CURRENT:
-					if (SettingsModel.startupModule == UiModule.TUTORIAL) {
-						d.activeView = UiModule.TUTORIAL
 					}
 					break
 				case UiModule.UPDATEINFORMATION:
@@ -258,11 +257,11 @@ ApplicationWindow {
 		target: SettingsModel
 		onFireAppUpdateDataChanged: {
 			if (!SettingsModel.appUpdateData.valid) {
-				//: INFO DESKTOP_QML Message that the update data is invalid and can't be used.
+				//: INFO DESKTOP Message that the update data is invalid and can't be used.
 				ApplicationModel.showFeedback(qsTr("Failed to retrieve update information."))
 			}
 			else if (SettingsModel.appUpdateData.updateAvailable) {
-				//: INFO DESKTOP_QML An update was found which matches the current platform, the new version number is shown in the message.
+				//: INFO DESKTOP An update was found which matches the current platform, the new version number is shown in the message.
 				ApplicationModel.showFeedback(qsTr("An update is available (version %1).").arg(SettingsModel.appUpdateData.version))
 			}
 		}
@@ -349,14 +348,14 @@ ApplicationWindow {
 			spacing: Constants.groupbox_spacing
 			padding: Constants.pane_padding / 2
 			Label {
-				//: LABEL DESKTOP_QML
+				//: LABEL DESKTOP
 				text: qsTr("Developer Mode: Enabled!")
 				color: Constants.red
 				anchors.verticalCenter: parent.verticalCenter
 				font.pixelSize: Style.dimens.normal_font_size
 			}
 			GButton {
-				//: LABEL DESKTOP_QML Global button to disable developer mode.
+				//: LABEL DESKTOP Global button to disable developer mode.
 				text: qsTr("Disable")
 				onClicked: SettingsModel.developerMode = false
 			}
@@ -395,8 +394,8 @@ ApplicationWindow {
 
 		ApplicationWindow {
 			visible: true
-			width: d.initialWidth
-			height: d.initialHeight
+			width: plugin.initialWindowSize.width
+			height: plugin.initialWindowSize.height
 			minimumHeight: appWindow.minimumHeight
 			minimumWidth: appWindow.minimumWidth
 

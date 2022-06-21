@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2018-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2018-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "context/WorkflowContext.h"
@@ -227,7 +227,7 @@ class test_WorkflowContext
 			QTest::ignoreMessage(QtWarningMsg, "Killing the current workflow.");
 			mContext->killWorkflow();
 			QVERIFY(mContext->isWorkflowKilled());
-			QCOMPARE(mContext->getStatus().getStatusCode(), GlobalStatus::Code::Card_Cancellation_By_User);
+			QCOMPARE(mContext->getStatus().getStatusCode(), GlobalStatus::Code::Workflow_Cancellation_By_User);
 			QVERIFY(mContext->isStateApproved());
 			QCOMPARE(spy.count(), 1);
 		}

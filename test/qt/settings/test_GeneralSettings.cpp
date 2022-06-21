@@ -1,12 +1,13 @@
 /*!
  * \brief Unit tests for \ref GeneralSettings
  *
- * \copyright Copyright (c) 2014-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2014-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "GeneralSettings.h"
 
 #include "AppSettings.h"
+#include "AutoStart.h"
 #include "Env.h"
 #include "VolatileSettings.h"
 
@@ -134,6 +135,40 @@ class test_GeneralSettings
 			#endif
 		}
 
+
+#ifdef Q_OS_WIN
+		void testInstallationPathOfAutoStart_data()
+		{
+			QTest::addColumn<bool>("useSdkMode");
+			QTest::newRow("SdkModeEnabled") << true;
+			QTest::newRow("SdkModeDisabled") << false;
+		}
+
+
+		void testInstallationPathOfAutoStart()
+		{
+
+			QFETCH(bool, useSdkMode);
+
+			SDK_MODE(useSdkMode);
+
+			// change path to trigger rewrite of AutoStart entry
+			const auto& windowsBootUpSettings = AutoStart::getRegistryStore();
+			windowsBootUpSettings->setValue(QCoreApplication::applicationName(), QStringLiteral("dummy"));
+
+			QCOMPARE(windowsBootUpSettings->value(QCoreApplication::applicationName(), QString()).toString(), QString("dummy"));
+
+			QVERIFY(!AutoStart::enabled());
+			QCOMPARE(windowsBootUpSettings->value(QCoreApplication::applicationName(), QString()).toString(), QString("dummy"));
+
+			AutoStart::set(true);
+			QCOMPARE(AutoStart::enabled(), !useSdkMode);
+			const auto& expectedPath = useSdkMode ? QString("dummy") : AutoStart::appPath();
+			QCOMPARE(windowsBootUpSettings->value(QCoreApplication::applicationName(), QString()).toString(), expectedPath);
+		}
+
+
+#endif
 
 		void testUseScreenKeyboard()
 		{

@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2015-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2015-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "UIPlugInQml.h"
@@ -24,6 +24,7 @@
 #include "LogHandler.h"
 #include "LogModel.h"
 #include "NotificationModel.h"
+#include "PinResetInformationModel.h"
 #include "PlatformTools.h"
 #include "ProviderCategoryFilterModel.h"
 #include "Random.h"
@@ -223,6 +224,7 @@ void UIPlugInQml::registerQmlTypes()
 	registerQmlSingletonType<VersionInformationModel>(&provideSingletonQmlType<VersionInformationModel>);
 	registerQmlSingletonType<ConnectivityManager>(&provideSingletonQmlType<ConnectivityManager>);
 	registerQmlSingletonType<ReleaseInformationModel>(&provideSingletonQmlType<ReleaseInformationModel>);
+	registerQmlSingletonType<PinResetInformationModel>(&provideSingletonQmlType<PinResetInformationModel>);
 }
 
 
@@ -266,27 +268,12 @@ void UIPlugInQml::init()
 		connect(rootWindow, &QQuickWindow::sceneGraphError, this, &UIPlugInQml::onSceneGraphError);
 		qCDebug(qml) << "Using renderer interface:" << rootWindow->rendererInterface()->graphicsApi();
 
-#if !defined(QT_NO_DEBUG) && !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
-		// This is only relevant when debugging the mobile UI on the desktop.
-		const QString platform = getPlatformSelectors();
-		bool isTablet = platform.contains(QLatin1String("tablet"));
-		bool isPhone = platform.contains(QLatin1String("phone"));
-
-		if (isTablet || isPhone)
-		{
-			// Use 4:3 in landscape for tablets and 16:9 in portrait for phones.
-			const QSize newSize(isTablet ? 1024 : 432, 768);
-			const auto screenGeometry = rootWindow->screen()->availableGeometry();
-			const auto newWindowGeometry = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, newSize, screenGeometry);
-			rootWindow->setGeometry(newWindowGeometry);
-		}
-
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+		const auto& newSize = getInitialWindowSize();
+		const auto screenGeometry = rootWindow->screen()->availableGeometry();
+		const auto newWindowGeometry = QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, newSize, screenGeometry);
+		rootWindow->setGeometry(newWindowGeometry);
 #endif
-	}
-
-	if (Env::getSingleton<ReleaseInformationModel>()->requiresInitialUpdate())
-	{
-		Env::getSingleton<ReleaseInformationModel>()->update();
 	}
 
 	onWindowPaletteChanged();
@@ -383,7 +370,7 @@ void UIPlugInQml::onWorkflowFinished(QSharedPointer<WorkflowContext> pContext)
 		Env::getSingleton<ChangePinModel>()->resetChangePinContext();
 	}
 
-	if (pContext.objectCast<AuthContext>())
+	if (const auto& context = pContext.objectCast<AuthContext>())
 	{
 		Env::getSingleton<ConnectivityManager>()->stopWatching();
 		Env::getSingleton<AuthModel>()->resetAuthContext();
@@ -395,7 +382,7 @@ void UIPlugInQml::onWorkflowFinished(QSharedPointer<WorkflowContext> pContext)
 		// Only hide the UI if we don't need to show the update information view. This behaviour ensures that
 		// the user is (aggressively) notified about a pending update if the AA2 is only shown for authentication
 		// workflows and never manually brought to foreground in between.
-		if (!pContext.objectCast<SelfAuthContext>() && !pContext->hasNextWorkflowPending() && generalSettings.isAutoCloseWindowAfterAuthentication() && !showUpdateInformationIfPending())
+		if (!pContext.objectCast<SelfAuthContext>() && !pContext->hasNextWorkflowPending() && generalSettings.isAutoCloseWindowAfterAuthentication() && !showUpdateInformationIfPending() && !context->showChangePinView())
 		{
 			onHideUi();
 		}
@@ -419,6 +406,7 @@ void UIPlugInQml::onApplicationInitialized()
 	connect(Env::getSingleton<SelfAuthModel>(), &SelfAuthModel::fireStartWorkflow, this, &UIPlugIn::fireSelfAuthenticationRequested);
 	connect(Env::getSingleton<RemoteServiceModel>(), &RemoteServiceModel::fireStartWorkflow, this, &UIPlugIn::fireRemoteServiceRequested);
 	connect(Env::getSingleton<LogHandler>()->getEventHandler(), &LogEventHandler::fireRawLog, this, &UIPlugInQml::onRawLog, Qt::QueuedConnection);
+	connect(Env::getSingleton<SettingsModel>(), &SettingsModel::fireAutoStartChanged, this, &UIPlugInQml::onAutoStartChanged);
 
 	const auto* service = Env::getSingleton<Service>();
 	connect(service, &Service::fireAppcastFinished, this, &UIPlugInQml::onUpdateAvailable);
@@ -433,9 +421,14 @@ void UIPlugInQml::onApplicationStarted()
 	mTrayIcon.create();
 
 #if defined(Q_OS_WIN) || (defined(Q_OS_BSD4) && !defined(Q_OS_IOS)) || (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID))
-	bool showSetupAssistant = Enum<UiModule>::fromString(Env::getSingleton<AppSettings>()->getGeneralSettings().getStartupModule(), UiModule::TUTORIAL) == UiModule::TUTORIAL;
-	bool developerMode = Env::getSingleton<AppSettings>()->getGeneralSettings().isDeveloperMode();
-	if (!QSystemTrayIcon::isSystemTrayAvailable() || showSetupAssistant || developerMode)
+	const auto& generalSettings = Env::getSingleton<AppSettings>()->getGeneralSettings();
+	const bool showSetupAssistant = Enum<UiModule>::fromString(generalSettings.getStartupModule(), UiModule::TUTORIAL) == UiModule::TUTORIAL;
+	const bool developerMode = generalSettings.isDeveloperMode();
+	bool missingTrayIcon = !QSystemTrayIcon::isSystemTrayAvailable();
+#ifdef Q_OS_MACOS
+	missingTrayIcon |= !Env::getSingleton<AppSettings>()->getGeneralSettings().isAutoStart();
+#endif
+	if (missingTrayIcon || showSetupAssistant || developerMode)
 #endif
 	{
 		QMetaObject::invokeMethod(this, &UIPlugInQml::show, Qt::QueuedConnection);
@@ -450,6 +443,13 @@ void UIPlugInQml::onApplicationStarted()
 void UIPlugInQml::onShowUi(UiModule pModule)
 {
 	PlatformTools::restoreToTaskbar();
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+	const auto& startupModule = Enum<UiModule>::fromString(Env::getSingleton<AppSettings>()->getGeneralSettings().getStartupModule(), UiModule::TUTORIAL);
+	if (pModule == UiModule::CURRENT && startupModule == UiModule::TUTORIAL)
+	{
+		pModule = UiModule::TUTORIAL;
+	}
+#endif
 	if (isDominated())
 	{
 		pModule = UiModule::CURRENT;
@@ -687,6 +687,14 @@ void UIPlugInQml::onRawLog(const QString& pMessage, const QString& pCategoryName
 {
 	if (pCategoryName == QLatin1String("developermode") || pCategoryName == QLatin1String("feedback"))
 	{
+#ifdef Q_OS_MACOS
+		if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSMojave)
+		{
+			PlatformTools::postNotification(QCoreApplication::applicationName(), pMessage);
+			return;
+		}
+
+#endif
 		mTrayIcon.showMessage(QCoreApplication::applicationName(), pMessage);
 	}
 }
@@ -772,13 +780,13 @@ JNIEXPORT void JNICALL Java_com_governikus_ausweisapp2_MainActivity_notifySafeAr
 	Q_UNUSED(pObj)
 
 	QMetaObject::invokeMethod(QCoreApplication::instance(), [] {
-				UIPlugIn* uiPlugIn = Env::getSingleton<UILoader>()->getLoaded(UIPlugInName::UIPlugInQml);
-				if (uiPlugIn)
-				{
-					UIPlugInQml* uiPlugInQml = qobject_cast<UIPlugInQml*>(uiPlugIn);
-					Q_EMIT uiPlugInQml->fireSafeAreaMarginsChanged();
-				}
-			}, Qt::QueuedConnection);
+			UIPlugIn* uiPlugIn = Env::getSingleton<UILoader>()->getLoaded(UIPlugInName::UIPlugInQml);
+			if (uiPlugIn)
+			{
+				UIPlugInQml* uiPlugInQml = qobject_cast<UIPlugInQml*>(uiPlugIn);
+				Q_EMIT uiPlugInQml->fireSafeAreaMarginsChanged();
+			}
+		}, Qt::QueuedConnection);
 }
 
 
@@ -810,6 +818,22 @@ QString UIPlugInQml::getFixedFontFamily() const
 }
 
 
+QSize UIPlugInQml::getInitialWindowSize() const
+{
+	const QString platform = getPlatformSelectors();
+	bool isTablet = platform.contains(QLatin1String("tablet"));
+	bool isPhone = platform.contains(QLatin1String("phone"));
+
+	if (isTablet || isPhone)
+	{
+		// Use 4:3 in landscape for tablets and 16:9 in portrait for phones.
+		return QSize(isTablet ? 1024 : 432, 768);
+	}
+
+	return QSize(960, 720);
+}
+
+
 void UIPlugInQml::onWindowPaletteChanged()
 {
 	const bool highContrast = isHighContrastEnabled();
@@ -818,6 +842,14 @@ void UIPlugInQml::onWindowPaletteChanged()
 		mHighContrastEnabled = highContrast;
 		Q_EMIT fireHighContrastEnabledChanged();
 	}
+}
+
+
+void UIPlugInQml::onAutoStartChanged()
+{
+#ifdef Q_OS_MACOS
+	mTrayIcon.setVisible(Env::getSingleton<AppSettings>()->getGeneralSettings().isAutoStart());
+#endif
 }
 
 

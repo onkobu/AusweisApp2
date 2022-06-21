@@ -8,12 +8,21 @@ def j = new Review
 		label: 'Windows',
 		artifacts: 'tmp/*.log',
 		allowEmptyArtifacts: true,
-		xunit: true
+		xunit: true,
+		weight: 2
 	).generate(this)
 
 
 j.with
 {
+	wrappers
+	{
+		environmentVariables
+		{
+			env('PATH', '${COMPILER_${MERCURIAL_REVISION_BRANCH}};$PATH')
+		}
+	}
+
 	steps
 	{
 		batchFile('cd source & cmake -DCMD=IMPORT_PATCH -P cmake/cmd.cmake')

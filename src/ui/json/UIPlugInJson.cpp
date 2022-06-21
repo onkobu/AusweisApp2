@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "UIPlugInJson.h"
@@ -97,7 +97,11 @@ void UIPlugInJson::onWorkflowFinished(QSharedPointer<WorkflowContext>)
 
 void UIPlugInJson::onReaderEvent(const ReaderInfo& pInfo)
 {
-	callFireMessage(mMessageDispatcher.createMsgReader(pInfo));
+	const auto& messages = mMessageDispatcher.processReaderChange(pInfo);
+	for (const auto& msg : messages)
+	{
+		callFireMessage(msg);
+	}
 }
 
 

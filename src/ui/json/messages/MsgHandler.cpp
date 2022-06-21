@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2016-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2016-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "MsgHandler.h"
@@ -158,4 +158,10 @@ void MsgHandler::setValue(const QLatin1String pKey, const QString& pValue)
 	{
 		mJsonObject[pKey] = pValue;
 	}
+}
+
+
+MsgHandler::operator Msg() const
+{
+	return Msg(getType(), getOutput());
 }

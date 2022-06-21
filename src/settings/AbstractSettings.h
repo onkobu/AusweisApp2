@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2014-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2014-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
@@ -35,7 +35,7 @@ class AbstractSettings
 		static QSharedPointer<QTemporaryDir> mTestDir;
 #endif
 
-		static QSharedPointer<QSettings> getStore();
+		static QSharedPointer<QSettings> getStore(const QString& pFilename = QString(), QSettings::Format pFormat = QSettings::InvalidFormat);
 
 		virtual void save() = 0;
 

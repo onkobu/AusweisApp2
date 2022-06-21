@@ -1,7 +1,7 @@
 /*!
  * \brief UIPlugIn implementation of QML.
  *
- * \copyright Copyright (c) 2015-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2015-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #pragma once
@@ -39,6 +39,7 @@ class UIPlugInQml
 	Q_PROPERTY(bool highContrastEnabled READ isHighContrastEnabled NOTIFY fireHighContrastEnabledChanged)
 	Q_PROPERTY(QString fixedFontFamily READ getFixedFontFamily CONSTANT)
 	Q_PROPERTY(bool tablet READ isTablet CONSTANT)
+	Q_PROPERTY(QSize initialWindowSize READ getInitialWindowSize CONSTANT)
 
 	private:
 		QScopedPointer<QQmlApplicationEngine> mEngine;
@@ -74,6 +75,7 @@ class UIPlugInQml
 		QVariantMap getSafeAreaMargins() const;
 		bool isHighContrastEnabled() const;
 		QString getFixedFontFamily() const;
+		QSize getInitialWindowSize() const;
 
 		Q_INVOKABLE void applyPlatformStyle(const QString& pPlatformStyle);
 		Q_INVOKABLE void init();
@@ -111,6 +113,7 @@ class UIPlugInQml
 		void onRawLog(const QString& pMessage, const QString& pCategoryName);
 
 		void onWindowPaletteChanged();
+		void onAutoStartChanged();
 
 	public Q_SLOTS:
 		void doRefresh();

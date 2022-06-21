@@ -1,5 +1,5 @@
 /*!
- * \copyright Copyright (c) 2018-2021 Governikus GmbH & Co. KG, Germany
+ * \copyright Copyright (c) 2018-2022 Governikus GmbH & Co. KG, Germany
  */
 
 #include "PlatformTools.h"
@@ -15,4 +15,11 @@ void PlatformTools::hideFromTaskbar()
 
 void PlatformTools::restoreToTaskbar()
 {
+}
+
+
+void PlatformTools::postNotification(const QString& pTitle, const QString& pMessage)
+{
+	Q_UNUSED(pTitle)
+	Q_UNUSED(pMessage)
 }
